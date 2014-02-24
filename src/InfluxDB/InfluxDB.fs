@@ -53,7 +53,6 @@ module internal Buffering =
 [<AutoOpen>]
 module internal Serialization =
 
-    open Microsoft.FSharp.Reflection
     open Newtonsoft.Json
     open Newtonsoft.Json.Serialization
 
@@ -66,12 +65,12 @@ module internal Serialization =
         buffer 
         |> Map.fold (fun series key value ->
             let columns, points =
-                FSharpType.GetRecordFields (value.[0].GetType ())
-                |> (fun fields ->
-                    fields 
-                    |> Array.map (fun i -> i.Name),
+                value.[0].GetType().GetProperties ()
+                |> (fun properties ->
+                    properties 
+                    |> Array.map (fun p -> p.Name),
                     value 
-                    |> Seq.map (fun e -> fields |> Array.map (fun i -> box (i.GetValue e))) 
+                    |> Seq.map (fun e -> properties |> Array.map (fun p -> box (p.GetValue e))) 
                     |> Seq.toArray)
                      
             series @ [InfluxSeries (Name = fst key, Columns = columns, Points = points)]) List.empty
