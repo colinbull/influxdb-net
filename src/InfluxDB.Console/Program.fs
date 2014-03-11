@@ -22,7 +22,13 @@ let main _ =
 
     let client = InfluxDBClient (config)
 
-    client.Series ("testseries", { User = "andrew"; Action = "got lunch" })
+    client.Write ("testseries", { User = "andrew"; Action = "got lunch" })
+
+    client.Query<Event> "select * from testseries"
+    |> Async.RunSynchronously
+    |> function
+       | Choice1Of2 result -> printfn "%A" result
+       | Choice2Of2 error -> printfn "%A" error
 
     Console.ReadLine () |> ignore
     0
